@@ -1,0 +1,8 @@
+---
+argument_specs:
+  main:
+    short_description: Nexus Repository Manager Community Edition
+    description:
+      - This role installs Nexus Repository Manager Community Edition on a Linux systems.
+    author: Jim Tarpley (@trippsc2)
+    options: {}

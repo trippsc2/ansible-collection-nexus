@@ -5,4 +5,164 @@ argument_specs:
     description:
       - This role installs Nexus Repository Manager Community Edition on a Linux systems.
     author: Jim Tarpley (@trippsc2)
-    options: {}
+    options:
+      nexus_ce_configure_selinux:
+        type: bool
+        required: false
+        description:
+          - If `true`, the role will configure SELinux to allow Nexus Repository Manager Community Edition.
+          - On EL systems, this will default to `true`.
+          - On Debian-based systems, this will default to `false`.
+      nexus_ce_configure_firewall:
+        type: bool
+        required: false
+        default: "{{ nexus_ce_listen_on_all_interfaces }}"
+        description:
+          - If `true`, the role will configure the host firewall to allow Nexus Repository Manager Community Edition.
+      nexus_ce_firewall_type:
+        type: str
+        required: false
+        choices:
+          - firewalld
+          - ufw
+        description:
+          - The type of firewall to configure.
+          - On EL and Debian systems, this will default to `firewalld`.
+          - On Ubuntu systems, this will default to `ufw`.
+      nexus_ce_version:
+        type: str
+        required: false
+        description:
+          - The version of Nexus Repository Manager Community Edition to install.
+          - If not specified, the latest version will be installed.
+      nexus_ce_perform_upgrade:
+        type: bool
+        required: false
+        default: false
+        description:
+          - If `true`, the role will perform an upgrade of the Nexus Repository Manager Community Edition.
+          - If `false`, the role will install the Nexus Repository Manager Community Edition only if it is not already installed.
+      nexus_ce_cleanup_old_versions:
+        type: bool
+        required: false
+        default: true
+        description:
+          - If `true`, the role will cleanup old versions of Nexus Repository Manager Community Edition after the installation.
+          - If `false`, the role will not cleanup old versions of Nexus Repository Manager Community Edition after the installation.
+      nexus_ce_download_base_path:
+        type: path
+        required: false
+        description:
+          - The base path to download the Nexus Repository Manager Community Edition tarball.
+          - If not specified, the role will use the default path of `/tmp`.
+      nexus_ce_os_user:
+        type: str
+        required: false
+        default: nexus
+        description:
+          - The user as which Nexus Repository Manager Community Edition will run.
+      nexus_ce_os_group:
+        type: str
+        required: false
+        default: nexus
+        description:
+          - The group as which Nexus Repository Manager Community Edition will run.
+      nexus_ce_os_home:
+        type: path
+        required: false
+        default: "/home/{{ nexus_ce_os_user }}"
+        description:
+          - The home directory of the user as which Nexus Repository Manager Community Edition will run.
+      nexus_ce_install_path:
+        type: path
+        required: false
+        default: /opt/nexus
+        description:
+          - The symbolic link to the currently installed version of Nexus Repository Manager Community Edition.
+          - A version path will be created in the same directory as the symbolic link.
+      nexus_ce_data_path:
+        type: path
+        required: false
+        default: /var/lib/nexus
+        description:
+          - The path to the data directory for Nexus Repository Manager Community Edition.
+      nexus_ce_heap_size_in_mb:
+        type: int
+        required: false
+        default: 2703
+        description:
+          - The heap size for Nexus Repository Manager Community Edition in megabytes.
+      nexus_ce_timezone:
+        type: str
+        required: false
+        default: UTC
+        description:
+          - The timezone for Nexus Repository Manager Community Edition.
+      nexus_ce_tmp_path:
+        type: path
+        required: false
+        description:
+          - The path to the temporary directory for Nexus Repository Manager Community Edition.
+          - On EL systems, this will default to `/var/tmp/nexus`.
+          - On Debian-based systems, this will default to `/tmp/nexus`.
+      nexus_ce_skip_onboarding_wizard:
+        type: bool
+        required: false
+        default: true
+        description:
+          - If `true`, the role will skip the onboarding wizard for Nexus Repository Manager Community Edition.
+      nexus_ce_listening_port:
+        type: int
+        required: false
+        default: 8081
+        description:
+          - The port on which Nexus Repository Manager Community Edition will listen.
+      nexus_ce_listen_on_all_interfaces:
+        type: bool
+        required: false
+        default: false
+        description:
+          - If `true`, the role will listen on all interfaces for Nexus Repository Manager Community Edition.
+          - If `false`, the role will listen on the loopback interface for Nexus Repository Manager Community Edition.
+      nexus_ce_encryption_keys_path:
+        type: path
+        required: false
+        default: "{{ nexus_ce_data_path }}/keys/encryption.json"
+        description:
+          - The path to the JSON file containing the Nexus Repository Manager Community Edition encryption keys.
+      nexus_ce_encryption_key_id:
+        type: str
+        required: true
+        description:
+          - The ID of the encryption key to use for Nexus Repository Manager Community Edition.
+      nexus_ce_encryption_keys:
+        type: list
+        required: true
+        elements: dict
+        description:
+          - A list of encryption keys to use for Nexus Repository Manager Community Edition.
+        options:
+          id:
+            type: str
+            required: true
+            description:
+              - The ID of the encryption key.
+          key:
+            type: str
+            required: true
+            no_log: true
+            description:
+              - The secret key for the encryption key.
+      nexus_ce_admin_password:
+        type: str
+        no_log: true
+        required: false
+        description:
+          - The password for the Nexus Repository Manager Community Edition admin user.
+          - If not specified, the default password will not be changed.  It can be found at `{{ nexus_ce_data_path }}/admin.password`.
+      nexus_ce_remove_default_repositories:
+        type: bool
+        required: false
+        default: true
+        description:
+          - If `true`, the role will remove the default repositories from Nexus Repository Manager Community Edition.

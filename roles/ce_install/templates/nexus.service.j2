@@ -1,0 +1,14 @@
+[Unit]
+Description=nexus service
+After=network.target
+
+[Service]
+Type=forking
+LimitNOFILE={{ nexus_ce_max_filedescriptors }}
+ExecStart={{ nexus_ce_install_path }}/bin/nexus start
+ExecStop={{ nexus_ce_install_path }}/bin/nexus stop
+User={{ nexus_ce_os_user }}
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

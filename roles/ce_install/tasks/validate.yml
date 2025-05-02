@@ -1,0 +1,135 @@
+---
+- name: Gather OS facts
+  when:
+    - ansible_distribution is not defined or
+      ansible_distribution_major_version is not defined or
+      ansible_distribution_release is not defined or
+      ansible_distribution_version is not defined or
+      ansible_os_family is not defined
+  ansible.builtin.setup:
+    gather_subset:
+      - '!all'
+      - '!min'
+      - distribution
+      - distribution_major_version
+      - distribution_release
+      - os_family
+
+- name: Validate that OS is not Windows or macOS
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family not in ['Windows', 'Darwin']
+    fail_msg: This role does not support Windows or macOS.
+    success_msg: The OS is not Windows or macOS.  Continuing with validation.
+
+- name: Include OS specific variables
+  ansible.builtin.include_vars: "{{ _file }}"
+  vars:
+    _file: "{{ lookup('first_found', _params) }}"
+    _params:
+      files:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_release }}.yml"
+        - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+        - "{{ ansible_distribution }}.yml"
+        - "{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+        - fallback.yml
+      paths:
+        - "{{ role_path }}/vars"
+
+- name: Warn if distribution is not tested
+  when:
+    - not _nexus_ce_tested_distribution
+  ansible.builtin.debug:
+    msg: "WARNING: This role has not been tested on {{ ansible_distribution }} {{ ansible_distribution_version }}."
+
+- name: Indicate that the role is tested on the current distribution
+  ansible.builtin.debug:
+    msg: "This role has been tested on {{ ansible_distribution }} {{ ansible_distribution_version }}."
+
+- name: Check if Nexus is already installed
+  become: true
+  ansible.builtin.stat:
+    path: "{{ nexus_ce_install_path }}"
+  register: _nexus_ce_link
+  check_mode: false
+  changed_when: false
+
+- name: If Nexus is not installed, indicate that it should be installed
+  when:
+    - not _nexus_ce_link.stat.exists
+  ansible.builtin.set_fact:
+    _nexus_ce_should_install: true
+
+- name: If Nexus is already installed, get the installed version
+  when:
+    - _nexus_ce_link.stat.exists
+  ansible.builtin.set_fact:
+    _nexus_ce_installed_version: "{{ _nexus_ce_link.stat.lnk_source | basename | regex_replace('^nexus-', '') }}"
+
+- name: If not upgrading and Nexus is already installed, indicate that it should not be installed and set version
+  when:
+    - not nexus_ce_perform_upgrade
+    - _nexus_ce_installed_version is defined
+  ansible.builtin.set_fact:
+    nexus_ce_version: "{{ _nexus_ce_installed_version }}"
+    _nexus_ce_should_install: false
+
+- name: If Nexus is already newer, indicate that it should not be installed and set version
+  when:
+    - nexus_ce_perform_upgrade
+    - _nexus_ce_installed_version is defined
+    - nexus_ce_version is defined
+    - nexus_ce_version is version_compare(_nexus_ce_installed_version, '<')
+  ansible.builtin.set_fact:
+    nexus_ce_version: "{{ _nexus_ce_installed_version }}"
+    _nexus_ce_should_install: false
+
+- name: Get latest version of Nexus Repository Manager Community Edition
+  when:
+    - nexus_ce_version is not defined
+  ansible.builtin.uri:
+    url: https://download.sonatype.com/nexus/3/latest-linux-x86_64.tar.gz
+    method: CONNECT
+    status_code:
+      - 302
+  register: _nexus_ce_latest_uri
+  check_mode: false
+  changed_when: false
+
+- name: Set nexus_ce_version to latest version
+  when:
+    - nexus_ce_version is not defined
+  ansible.builtin.set_fact:
+    nexus_ce_version: >-
+      {{ _nexus_ce_latest_uri.location | regex_replace("^https://.*nexus-(\d*\.\d*\.\d*-\d*)-linux-x86_64.tar.gz", "\1") }}
+
+- name: Validate version is formatted correctly
+  ansible.builtin.assert:
+    that:
+      - nexus_ce_version is regex('^\d+\.\d+\.\d+-\d+$')
+    fail_msg: The version must be formatted as X.Y.Z-N.
+    success_msg: The version is formatted correctly.
+
+- name: If Nexus is already installed, check if it should be upgraded
+  when:
+    - nexus_ce_perform_upgrade
+    - _nexus_ce_link.stat.exists
+  ansible.builtin.set_fact:
+    _nexus_ce_should_install: "{{ nexus_ce_version is version_compare(_nexus_ce_installed_version, '>=') }}"
+
+- name: Set tarball URL
+  when:
+    - _nexus_ce_should_install
+  ansible.builtin.set_fact:
+    _nexus_ce_tarball_url: "https://download.sonatype.com/nexus/3/nexus-{{ nexus_ce_version }}-linux-x86_64.tar.gz"
+
+- name: Set version path
+  ansible.builtin.set_fact:
+    _nexus_ce_version_path: "{{ nexus_ce_install_path }}-{{ nexus_ce_version }}"
+
+- name: Validate the timezone is valid
+  ansible.builtin.assert:
+    that:
+      - nexus_ce_timezone is trippsc2.general.tz
+    fail_msg: The timezone must be a valid timezone.
+    success_msg: The timezone is valid.

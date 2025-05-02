@@ -3,7 +3,10 @@ galaxy_info:
   author: Jim Tarpley (@trippsc2)
   namespace: trippsc2
   role_name: ce_install 
-  description: This role installs Nexus Repository Manager Community Edition on Linux systems.
+  description: |
+    This role installs Nexus Repository Manager Community Edition on Linux systems.
+
+    A reverse proxy should be configured prior to running this role.
 
   license: MIT
 
@@ -24,6 +27,9 @@ galaxy_info:
         - jammy
         - noble
 
-collections: []
+collections:
+  - ansible.posix
+  - community.general
+  - trippsc2.general
 
 dependencies: []

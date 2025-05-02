@@ -1,0 +1,20 @@
+---
+- name: Install SELinux management packages
+  become: true
+  ansible.builtin.package:
+    name: "{{ _nexus_ce_selinux_packages }}"
+    state: present
+
+- name: Create SELinux context for Nexus executable
+  become: true
+  community.general.sefcontext:
+    path: "{{ _nexus_ce_version_path }}/bin/nexus"
+    setype: bin_t
+    state: present
+
+- name: Ensure SELinux type is set on Nexus executable
+  become: true
+  ansible.builtin.file:
+    path: "{{ _nexus_ce_version_path }}/bin/nexus"
+    setype: bin_t
+    state: file

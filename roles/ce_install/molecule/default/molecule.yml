@@ -1,0 +1,31 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: libvirt
+  cachier: machine
+  parallel: true
+platforms:
+  - name: linux
+    box: jtarpley/${MOLECULE_BOX:-rocky9_cis}
+    memory: 4096
+    cpus: 4
+    provider_options:
+      default_prefix: nexus_ce_install_
+    groups:
+      - subjects
+provisioner:
+  name: ansible
+  inventory:
+    group_vars:
+      subjects:
+        nexus_ce_listen_on_all_interfaces: true
+        nexus_ce_admin_password: SecurePassword123!
+        nexus_ce_encryption_key_id: main
+        nexus_ce_encryption_keys:
+          - id: main
+            key: SecureSecretKey123!
+verifier:
+  name: ansible

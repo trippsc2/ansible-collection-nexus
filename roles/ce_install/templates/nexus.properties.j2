@@ -1,0 +1,13 @@
+{{ ansible_managed | comment }}
+
+application-port={{ nexus_ce_listening_port }}
+application-host={{ nexus_ce_listen_on_all_interfaces | ternary('0.0.0.0', '127.0.0.1') }}
+
+nexus-edition=nexus-open-core-edition
+nexus-features=nexus-core-feature
+
+nexus.secrets.file={{ nexus_ce_encryption_keys_path }}
+{% if nexus_ce_skip_onboarding_wizard %}
+
+nexus.onboarding.enabled=false
+{% endif %}

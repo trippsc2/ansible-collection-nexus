@@ -1,0 +1,24 @@
+---
+nexus_ce_configure_firewall: "{{ nexus_ce_listen_on_all_interfaces }}"
+nexus_ce_perform_upgrade: false
+nexus_ce_cleanup_old_versions: true
+
+nexus_ce_os_user: nexus
+nexus_ce_os_group: nexus
+nexus_ce_os_home: "/home/{{ nexus_ce_os_user }}"
+
+nexus_ce_install_path: /opt/nexus
+nexus_ce_data_path: /var/lib/nexus
+nexus_ce_encryption_keys_path: "{{ nexus_ce_data_path }}/keys/encryption.json"
+
+nexus_ce_heap_size_in_mb: 2703
+nexus_ce_timezone: UTC
+
+nexus_ce_max_filedescriptors: 65536
+
+nexus_ce_skip_onboarding_wizard: true
+
+nexus_ce_listening_port: 8081
+nexus_ce_listen_on_all_interfaces: false
+
+nexus_ce_remove_default_repositories: true

@@ -1,0 +1,139 @@
+---
+- name: Install new version of Nexus Repository Manager Community Edition
+  when:
+    - _nexus_ce_should_install
+  block:
+    - name: Extract Nexus tarball
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ _nexus_ce_tarball_url }}"
+        dest: "{{ _nexus_ce_version_path | dirname }}"
+        remote_src: true
+        owner: "{{ nexus_ce_os_user }}"
+        group: "{{ nexus_ce_os_group }}"
+        mode: '0750'
+
+- name: Create data directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ nexus_ce_data_path }}"
+    state: directory
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0750'
+
+- name: Create temporary directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ _nexus_ce_tmp_path }}"
+    state: directory
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0750'
+
+- name: Create service file
+  become: true
+  ansible.builtin.template:
+    src: nexus.service.j2
+    dest: /etc/systemd/system/nexus.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - _nexus_ce_reload_systemd
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure JVM options
+  become: true
+  ansible.builtin.template:
+    src: nexus.vmoptions.j2
+    dest: "{{ _nexus_ce_version_path }}/bin/nexus.vmoptions"
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0640'
+  notify:
+    - _nexus_ce_restart_nexus
+
+- name: Configure onboarding wizard skip
+  become: true
+  when:
+    - nexus_ce_skip_onboarding_wizard
+  ansible.builtin.lineinfile:
+    path: "{{ _nexus_ce_version_path }}/etc/nexus.properties"
+    regexp: '^nexus.onboarding.enabled='
+    line: 'nexus.onboarding.enabled=false'
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0640'
+    create: true
+    state: present
+  notify:
+    - _nexus_ce_restart_nexus
+
+- name: Create data etc directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ nexus_ce_data_path }}/etc"
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0750'
+    state: directory
+
+- name: Create data keys directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ nexus_ce_encryption_keys_path | dirname }}"
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0750'
+    state: directory
+
+- name: Create data keys file
+  become: true
+  ansible.builtin.template:
+    src: encryption.json.j2
+    dest: "{{ nexus_ce_encryption_keys_path }}"
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0640'
+  notify:
+    - _nexus_ce_restart_nexus
+
+- name: Configure Nexus properties
+  become: true
+  ansible.builtin.template:
+    src: nexus.properties.j2
+    dest: "{{ nexus_ce_data_path }}/etc/nexus.properties"
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0640'
+  notify:
+    - _nexus_ce_restart_nexus
+
+- name: Configure NEXUS_HOME
+  become: true
+  ansible.builtin.lineinfile:
+    path: "{{ nexus_ce_os_home }}/.bashrc"
+    regexp: '^export NEXUS_HOME='
+    line: 'export NEXUS_HOME="{{ nexus_ce_install_path }}"'
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0640'
+    create: true
+    state: present
+  notify:
+    - _nexus_ce_restart_nexus
+
+- name: Configure Nexus symbolic link
+  become: true
+  ansible.builtin.file:
+    src: "{{ _nexus_ce_version_path }}"
+    path: "{{ nexus_ce_install_path }}"
+    owner: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    mode: '0750'
+    state: link
+  notify:
+    - _nexus_ce_restart_nexus

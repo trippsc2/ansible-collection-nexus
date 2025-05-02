@@ -13,7 +13,10 @@ tags:
   - infrastructure
   - linux
 
-dependencies: {}
+dependencies:
+  ansible.posix: '>=1.1.0'
+  community.general: '>=1.0.0'
+  trippsc2.general: '>=2.6.0'
 
 repository: https://github.com/trippsc2/ansible-collection-nexus.git
 

@@ -1,0 +1,40 @@
+-Xms{{ nexus_ce_heap_size_in_mb }}m
+-Xmx{{ nexus_ce_heap_size_in_mb }}m
+-XX:MaxDirectMemorySize={{ nexus_ce_heap_size_in_mb }}M
+-XX:+UnlockDiagnosticVMOptions
+-XX:+LogVMOutput
+-XX:LogFile={{ nexus_ce_data_path }}/log/jvm.log
+-XX:-OmitStackTraceInFastThrow
+-Duser.timezone={{ nexus_ce_timezone }}
+-Dkaraf.home=.
+-Dkaraf.base=.
+-Djava.util.logging.config.file=etc/spring/java.util.logging.properties
+-Dkaraf.data={{ nexus_ce_data_path }}
+-Dkaraf.log={{ nexus_ce_data_path }}/log
+-Djava.io.tmpdir={{ _nexus_ce_tmp_path }}
+-Djdk.tls.ephemeralDHKeySize=2048
+#
+# additional vmoptions needed for Java9+
+#
+--add-reads=java.xml=java.logging
+--add-opens
+java.base/java.security=ALL-UNNAMED
+--add-opens
+java.base/java.net=ALL-UNNAMED
+--add-opens
+java.base/java.lang=ALL-UNNAMED
+--add-opens
+java.base/java.util=ALL-UNNAMED
+--add-opens
+java.naming/javax.naming.spi=ALL-UNNAMED
+--add-opens
+java.rmi/sun.rmi.transport.tcp=ALL-UNNAMED
+--add-exports=java.base/sun.net.www.protocol.http=ALL-UNNAMED
+--add-exports=java.base/sun.net.www.protocol.https=ALL-UNNAMED
+--add-exports=java.base/sun.net.www.protocol.jar=ALL-UNNAMED
+--add-exports=jdk.xml.dom/org.w3c.dom.html=ALL-UNNAMED
+--add-exports=jdk.naming.rmi/com.sun.jndi.url.rmi=ALL-UNNAMED
+--add-exports=java.security.sasl/com.sun.security.sasl=ALL-UNNAMED
+--add-exports=java.base/sun.security.x509=ALL-UNNAMED
+--add-exports=java.base/sun.security.rsa=ALL-UNNAMED
+--add-exports=java.base/sun.security.pkcs=ALL-UNNAMED

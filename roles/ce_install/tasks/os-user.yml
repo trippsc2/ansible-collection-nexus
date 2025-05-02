@@ -1,0 +1,16 @@
+---
+- name: Create Nexus OS group
+  become: true
+  ansible.builtin.group:
+    name: "{{ nexus_ce_os_group }}"
+    state: present
+
+- name: Create Nexus OS user
+  become: true
+  ansible.builtin.user:
+    name: "{{ nexus_ce_os_user }}"
+    group: "{{ nexus_ce_os_group }}"
+    home: "{{ nexus_ce_os_home }}"
+    shell: /bin/bash
+    create_home: true
+    state: present

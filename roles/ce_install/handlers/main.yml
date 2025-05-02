@@ -1,0 +1,13 @@
+---
+- name: Reload systemd
+  become: true
+  listen: _nexus_ce_reload_systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Restart Nexus
+  become: true
+  listen: _nexus_ce_restart_nexus
+  ansible.builtin.systemd_service:
+    name: nexus.service
+    state: restarted

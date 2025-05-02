@@ -1,0 +1,85 @@
+---
+- name: Wait for Nexus to be ready
+  ansible.builtin.wait_for:
+    host: '127.0.0.1'
+    port: "{{ nexus_ce_listening_port }}"
+    timeout: 300
+    delay: 10
+    state: started
+
+- name: Check for admin password file
+  become: true
+  ansible.builtin.stat:
+    path: "{{ nexus_ce_data_path }}/admin.password"
+  register: _nexus_ce_admin_password_file
+
+- name: Get admin password content
+  become: true
+  when:
+    - _nexus_ce_admin_password_file.stat.exists
+  ansible.builtin.slurp:
+    path: "{{ nexus_ce_data_path }}/admin.password"
+  register: _nexus_ce_admin_password_file_content
+
+- name: Validate that admin password file is not empty or admin password is defined
+  become: true
+  ansible.builtin.assert:
+    that:
+      - nexus_ce_admin_password is defined or
+        (_nexus_ce_admin_password_file.stat.exists and
+        _nexus_ce_admin_password_file_content.content | b64decode != '')
+    fail_msg: Admin password file is empty or admin password is not defined.
+    success_msg: Admin password file is not empty or admin password is defined.
+
+- name: Reset admin password
+  become: true
+  when:
+    - nexus_ce_admin_password is defined
+    - _nexus_ce_admin_password_file.stat.exists
+    - _nexus_ce_admin_password_file_content.content | b64decode != ''
+  block:
+    - name: Reset admin password
+      ansible.builtin.uri:
+        url: "http://localhost:{{ nexus_ce_listening_port }}/service/rest/v1/security/users/admin/change-password"
+        method: PUT
+        user: admin
+        password: "{{ _nexus_ce_admin_password_file_content.content | b64decode }}"
+        force_basic_auth: true
+        headers:
+          Content-Type: text/plain
+        body_format: raw
+        body: "{{ nexus_ce_admin_password }}"
+        status_code:
+          - 204
+
+    - name: Clear admin password file
+      become: true
+      ansible.builtin.copy:
+        content: ''
+        dest: "{{ nexus_ce_data_path }}/admin.password"
+        owner: "{{ nexus_ce_os_user }}"
+        group: "{{ nexus_ce_os_group }}"
+        mode: '0640'
+
+- name: Set admin password variable, if not already set
+  when:
+    - nexus_ce_admin_password is not defined
+  ansible.builtin.set_fact:
+    nexus_ce_admin_password: "{{ _nexus_ce_admin_password_file_content.content | b64decode }}"
+
+- name: Delete default repositories
+  when:
+    - nexus_ce_remove_default_repositories
+  loop: "{{ _nexus_ce_default_repositories }}"
+  ansible.builtin.uri:
+    url: "http://localhost:{{ nexus_ce_listening_port }}/service/rest/v1/repositories/{{ item }}"
+    method: DELETE
+    user: admin
+    password: "{{ nexus_ce_admin_password }}"
+    force_basic_auth: true
+    status_code:
+      - 204
+      - 404
+  register: _nexus_ce_remove_default_repository
+  changed_when: 
+    - _nexus_ce_remove_default_repository.status | int == 204

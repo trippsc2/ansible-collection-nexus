@@ -1,0 +1,10 @@
+---
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Ensure Nexus is running and enabled
+  become: true
+  ansible.builtin.systemd_service:
+    name: nexus.service
+    state: started
+    enabled: true

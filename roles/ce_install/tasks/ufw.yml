@@ -1,7 +1,7 @@
 ---
 - name: Allow Nexus port in UFW
   become: true
-  ansible.builtin.ufw:
+  community.general.ufw:
     port: "{{ nexus_ce_listening_port }}"
     state: enabled
     rule: allow

@@ -1,7 +1,7 @@
 ---
 namespace: trippsc2
 name: nexus
-version: 1.0.1
+version: 1.0.2
 readme: README.md
 authors:
   - Jim Tarpley (@trippsc2)
@@ -14,11 +14,11 @@ tags:
   - linux
 
 dependencies:
-  ansible.posix: '>=1.1.0'
+  ansible.posix: '>=1.0.1'
   community.general: '>=1.0.0'
   trippsc2.general: '>=2.6.0'
 
-repository: https://github.com/trippsc2/ansible-collection-nexus.git
+repository: https://github.com/trippsoft/ansible-collection-nexus.git
 
 manifest:
   directives:

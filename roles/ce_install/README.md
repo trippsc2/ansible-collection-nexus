@@ -1,7 +1,7 @@
 <!-- BEGIN_ANSIBLE_DOCS -->
 
 # Ansible Role: trippsc2.nexus.ce_install
-Version: 1.0.1
+Version: 1.0.2
 
 This role installs Nexus Repository Manager Community Edition on Linux systems.
 
@@ -14,7 +14,7 @@ A reverse proxy should be configured prior to running this role.
 | -------- | -------- |
 | Debian | <ul><li>bookworm</li></ul> |
 | EL | <ul><li>9</li><li>8</li></ul> |
-| Ubuntu | <ul><li>noble</li><li>jammy</li><li>focal</li></ul> |
+| Ubuntu | <ul><li>noble</li><li>jammy</li></ul> |
 
 ## Dependencies
 

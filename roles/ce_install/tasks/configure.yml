@@ -4,7 +4,7 @@
     host: '127.0.0.1'
     port: "{{ nexus_ce_listening_port }}"
     timeout: 300
-    delay: 10
+    delay: 30
     state: started
 
 - name: Check for admin password file
